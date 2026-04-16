@@ -2241,3 +2241,484 @@ a:hover {
     gap: 0.5rem;
   }
 }
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   CALCULADORA DE POÇÕES
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.calc-container {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+/* ── Seleção ── */
+.calc-selecao {
+  background: var(--bg-secondary);
+  border-radius: 12px;
+  padding: 1.5rem;
+  box-shadow: var(--shadow);
+}
+
+.calc-selecao-grid {
+  display: grid;
+  grid-template-columns: 1fr auto auto;
+  gap: 1rem;
+  align-items: end;
+  margin-bottom: 1.25rem;
+}
+
+.calc-tier-buttons {
+  display: flex;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+}
+
+.calc-tier-btn {
+  padding: 0.45rem 0.8rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  border: 2px solid var(--border-color);
+  border-radius: 6px;
+  background: var(--bg-primary);
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.calc-tier-btn:hover {
+  border-color: var(--tier-color, var(--accent-gold));
+  color: var(--tier-color, var(--accent-gold));
+}
+
+.calc-tier-btn.active {
+  background: var(--tier-color, var(--accent-gold));
+  border-color: var(--tier-color, var(--accent-gold));
+  color: #fff;
+}
+
+.calc-receita-titulo {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 1rem;
+  background: var(--bg-tertiary);
+  border-radius: 8px;
+  flex-wrap: wrap;
+}
+
+.calc-pocao-icone {
+  font-size: 1.5rem;
+}
+
+.calc-pocao-nome {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.calc-tier-badge {
+  padding: 0.2rem 0.6rem;
+  border-radius: 4px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #fff;
+}
+
+.calc-produz-info {
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+  margin-left: auto;
+}
+
+.calc-produz-info strong {
+  color: var(--text-primary);
+}
+
+/* ── Seção genérica ── */
+.calc-section {
+  background: var(--bg-secondary);
+  border-radius: 12px;
+  padding: 1.5rem;
+  box-shadow: var(--shadow);
+}
+
+.calc-section-title {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 1rem;
+}
+
+/* ── Tabela de ingredientes ── */
+.calc-table-wrapper {
+  overflow-x: auto;
+}
+
+.calc-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+}
+
+.calc-table th,
+.calc-table td {
+  padding: 0.75rem 0.875rem;
+  border-bottom: 1px solid var(--border-color);
+  vertical-align: middle;
+}
+
+.calc-table th {
+  font-weight: 600;
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--text-secondary);
+  background: var(--bg-tertiary);
+}
+
+.calc-table tr:hover td {
+  background: var(--bg-tertiary);
+}
+
+.calc-table tfoot td {
+  border-bottom: none;
+  border-top: 2px solid var(--border-color);
+  background: var(--bg-tertiary);
+}
+
+.calc-ing-nome {
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+.calc-mono {
+  font-family: monospace;
+}
+
+.calc-bold {
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.calc-custo {
+  color: var(--accent-red);
+}
+
+.text-right {
+  text-align: right;
+}
+
+.calc-total-label {
+  font-weight: 600;
+  color: var(--text-secondary);
+  text-align: right;
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.calc-taxa-row td {
+  background: rgba(234, 179, 8, 0.05);
+  border-bottom: none;
+}
+
+.calc-taxa-label {
+  color: var(--accent-gold) !important;
+  font-style: italic;
+  text-transform: none !important;
+  letter-spacing: 0 !important;
+}
+
+.calc-taxa-val {
+  font-family: monospace;
+  font-weight: 600;
+  color: var(--accent-gold);
+  text-align: right;
+}
+
+.calc-total-final td {
+  border-top: 2px solid var(--accent-red) !important;
+}
+
+/* Remove setas de number inputs na calculadora */
+.calc-price-input::-webkit-outer-spin-button,
+.calc-price-input::-webkit-inner-spin-button,
+.calc-venda-input::-webkit-outer-spin-button,
+.calc-venda-input::-webkit-inner-spin-button,
+.calc-container input[type="number"]::-webkit-outer-spin-button,
+.calc-container input[type="number"]::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.calc-price-input,
+.calc-venda-input,
+.calc-container input[type="number"] {
+  -moz-appearance: textfield;
+}
+
+/* Campo de preço dentro da tabela */
+.calc-price-input {
+  width: 110px;
+  padding: 0.4rem 0.6rem;
+  font-size: 0.85rem;
+  font-family: monospace;
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  text-align: right;
+  transition: border-color 0.2s;
+  display: block;
+  margin-left: auto;
+}
+
+.calc-price-input:focus {
+  outline: none;
+  border-color: var(--accent-gold);
+}
+
+/* ── Resumo ── */
+.calc-resumo-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1rem;
+}
+
+.calc-resumo-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  padding: 1.25rem;
+  border-radius: 10px;
+  background: var(--bg-tertiary);
+  border: 2px solid var(--border-color);
+  transition: border-color 0.2s;
+}
+
+.calc-resumo-card.lucrativo {
+  background: rgba(34, 197, 94, 0.06);
+  border-color: var(--accent-green);
+}
+
+.calc-resumo-card.prejuizo {
+  background: rgba(239, 68, 68, 0.06);
+  border-color: var(--accent-red);
+}
+
+.calc-card-icon {
+  font-size: 1.5rem;
+  margin-bottom: 0.25rem;
+}
+
+.calc-card-label {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--text-muted);
+  font-weight: 500;
+}
+
+.calc-card-valor {
+  font-size: 1.4rem;
+  font-weight: 800;
+  font-family: monospace;
+  color: var(--text-primary);
+  word-break: break-all;
+}
+
+.calc-card-valor.calc-red { color: var(--accent-red); }
+.calc-card-valor.calc-green { color: var(--accent-green); }
+
+.calc-card-detail {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  margin-top: 0.1rem;
+}
+
+.calc-taxa-detalhe {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  margin-top: 0.35rem;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+.calc-taxa-chip {
+  color: var(--accent-gold);
+  font-weight: 500;
+}
+
+.calc-taxa-liq {
+  color: var(--accent-green);
+  font-weight: 600;
+}
+
+/* ── Valor da loja ── */
+.calc-loja-section {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.calc-loja-checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  font-size: 0.95rem;
+  font-weight: 500;
+  color: var(--text-primary);
+  cursor: pointer;
+  width: fit-content;
+}
+
+.calc-loja-checkbox-label input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--accent-gold);
+  cursor: pointer;
+}
+
+.calc-loja-input-wrap {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.calc-loja-input-wrap .calc-venda-input {
+  max-width: 220px;
+}
+
+.calc-loja-total {
+  font-size: 0.9rem;
+  color: var(--text-primary);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.calc-loja-total strong {
+  color: var(--accent-red);
+  font-family: monospace;
+}
+
+.calc-loja-detalhe {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
+/* ── Taxa de retorno ── */
+.calc-retorno-input-group {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.calc-retorno-input {
+  max-width: 180px;
+}
+
+.calc-retorno-pct {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--text-secondary);
+}
+
+.calc-retorno-detalhe {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.calc-retorno-lotes {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  font-family: monospace;
+}
+
+.calc-retorno-lotes strong {
+  color: var(--accent-gold);
+}
+
+/* ── Badges estimado ── */
+.calc-estimado-tag {
+  display: inline-block;
+  margin-left: 0.5rem;
+  padding: 0.1rem 0.45rem;
+  font-size: 0.7rem;
+  font-weight: 600;
+  background: rgba(234, 179, 8, 0.15);
+  color: var(--accent-gold);
+  border: 1px solid var(--accent-gold);
+  border-radius: 4px;
+  vertical-align: middle;
+}
+
+.calc-estimado-badge {
+  display: inline-block;
+  margin-left: 0.3rem;
+  color: var(--accent-gold);
+  font-weight: 700;
+  font-size: 1rem;
+  vertical-align: middle;
+}
+
+.calc-estimado-nota {
+  color: var(--accent-gold) !important;
+  font-style: italic;
+  font-weight: 500;
+}
+
+/* Campo de preço de venda */
+.calc-venda-input {
+  padding: 0.5rem 0.75rem;
+  font-size: 1rem;
+  font-family: monospace;
+  font-weight: 600;
+  border: 2px solid var(--accent-gold);
+  border-radius: 6px;
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  width: 100%;
+  transition: border-color 0.2s;
+}
+
+.calc-venda-input:focus {
+  outline: none;
+  border-color: #ca9a06;
+}
+
+/* ── Responsivo - Calculadora ── */
+@media (max-width: 1200px) {
+  .calc-resumo-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 900px) {
+  .calc-selecao-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 600px) {
+  .calc-resumo-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .calc-produz-info {
+    margin-left: 0;
+    width: 100%;
+  }
+
+  .calc-price-input {
+    width: 90px;
+  }
+}

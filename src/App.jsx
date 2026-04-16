@@ -7,13 +7,14 @@ import { PriceTable } from './components/PriceTable'
 import { PriceHistory } from './components/PriceHistory'
 import { Favoritos } from './components/Favoritos'
 import { CraftTab } from './components/craft'
+import { Calculadora } from './components/Calculadora'
 import { useFavoritos } from './hooks/useFavoritos'
 import { useDarkMode } from './hooks/useDarkMode'
 import { carregarItens, buscarItensPorNome, consultarPrecos, QUALIDADES } from './services/albionApi'
 
 function App() {
   // Aba ativa
-  const [abaAtiva, setAbaAtiva] = useState('mercado') // 'mercado' | 'craft'
+  const [abaAtiva, setAbaAtiva] = useState('mercado') // 'mercado' | 'craft' | 'calculadora'
 
   // Estado principal
   const [todosItens, setTodosItens] = useState([])
@@ -101,6 +102,13 @@ function App() {
           <span className="tab-icon">🔨</span>
           Craft
         </button>
+        <button
+          className={`tab-button ${abaAtiva === 'calculadora' ? 'active' : ''}`}
+          onClick={() => setAbaAtiva('calculadora')}
+        >
+          <span className="tab-icon">🧪</span>
+          Calculadora
+        </button>
       </nav>
 
       <main className="main-content">
@@ -181,6 +189,13 @@ function App() {
                 itensDisponiveis={todosItens}
               />
             )}
+          </div>
+        )}
+
+        {/* Aba Calculadora */}
+        {abaAtiva === 'calculadora' && (
+          <div className="content content-full">
+            <Calculadora />
           </div>
         )}
       </main>
