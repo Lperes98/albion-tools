@@ -2260,6 +2260,36 @@ a:hover {
   box-shadow: var(--shadow);
 }
 
+/* Toggle poção / comida */
+.calc-categoria-toggle {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1.25rem;
+}
+
+.calc-categoria-btn {
+  padding: 0.5rem 1.25rem;
+  font-size: 0.95rem;
+  font-weight: 600;
+  border: 2px solid var(--border-color);
+  border-radius: 8px;
+  background: var(--bg-primary);
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.calc-categoria-btn:hover {
+  border-color: var(--accent-gold);
+  color: var(--accent-gold);
+}
+
+.calc-categoria-btn.active {
+  background: var(--accent-gold);
+  border-color: var(--accent-gold);
+  color: #000;
+}
+
 .calc-selecao-grid {
   display: grid;
   grid-template-columns: 1fr auto auto;

@@ -322,6 +322,144 @@ const POCOES = [
   },
 ]
 
+// ─── Dados de comidas ────────────────────────────────────────────────────────
+
+const COMIDAS = [
+  {
+    id: 'basicos',
+    nome: 'Básicos',
+    icone: '🐟',
+    tiers: [
+      { tier: 1, label: 'Peixe', nome: 'Peixe Grelhado', produz: 10,
+        ingredientes: [{ nome: 'Peixe', qtd: 10 }] },
+      { tier: 1, label: 'Alga', nome: 'Salada de Alga', produz: 10,
+        ingredientes: [{ nome: 'Alga Marinha', qtd: 10 }] },
+      { tier: 2, nome: 'Molho de Peixe', produz: 1,
+        ingredientes: [{ nome: 'Peixe Picado', qtd: 10 }] },
+      { tier: 3, nome: 'Pão', produz: 1,
+        ingredientes: [{ nome: 'Farinha', qtd: 3 }] },
+    ],
+  },
+  {
+    id: 'sopas',
+    nome: 'Sopas',
+    icone: '🥣',
+    tiers: [
+      { tier: 4, nome: 'Sopa de Trigo', produz: 10,
+        ingredientes: [{ nome: 'Trigo', qtd: 48 }] },
+      { tier: 5, nome: 'Sopa de Cenoura', produz: 10,
+        ingredientes: [{ nome: 'Cenoura', qtd: 16 }] },
+      { tier: 6, nome: 'Sopa de Repolho', produz: 10,
+        ingredientes: [{ nome: 'Repolho', qtd: 144 }] },
+      { tier: 0, label: 'Marisco', nome: 'Sopa de Marisco', produz: 1,
+        ingredientes: [{ nome: 'Cenoura', qtd: 2 }, { nome: 'Marisco', qtd: 1 }] },
+    ],
+  },
+  {
+    id: 'saladas',
+    nome: 'Saladas',
+    icone: '🥗',
+    tiers: [
+      { tier: 5, nome: 'Salada de Feijão', produz: 10,
+        ingredientes: [{ nome: 'Cenoura', qtd: 8 }, { nome: 'Feijão', qtd: 8 }] },
+      { tier: 6, nome: 'Salada de Nabo', produz: 10,
+        ingredientes: [{ nome: 'Trigo', qtd: 24 }, { nome: 'Nabo', qtd: 24 }] },
+      { tier: 7, nome: 'Salada de Batata', produz: 10,
+        ingredientes: [{ nome: 'Batata', qtd: 24 }, { nome: 'Repolho', qtd: 24 }] },
+      { tier: 0, label: 'Kraken', nome: 'Salada de Kraken', produz: 1,
+        ingredientes: [{ nome: 'Batata', qtd: 2 }, { nome: 'Kraken', qtd: 1 }] },
+    ],
+  },
+  {
+    id: 'omeletes',
+    nome: 'Omeletes',
+    icone: '🍳',
+    tiers: [
+      { tier: 5, nome: 'Omelete de Galinha', produz: 10,
+        ingredientes: [{ nome: 'Trigo', qtd: 4 }, { nome: 'Frango', qtd: 8 }, { nome: 'Ovo', qtd: 2 }] },
+      { tier: 6, nome: 'Omelete de Ganso', produz: 10,
+        ingredientes: [{ nome: 'Repolho', qtd: 12 }, { nome: 'Ganso', qtd: 24 }, { nome: 'Ovo', qtd: 6 }] },
+      { tier: 7, nome: 'Omelete de Porco', produz: 10,
+        ingredientes: [{ nome: 'Milho', qtd: 36 }, { nome: 'Porco', qtd: 72 }, { nome: 'Ovo', qtd: 18 }] },
+      { tier: 0, label: 'Caranguejo', nome: 'Omelete de Caranguejo', produz: 1,
+        ingredientes: [{ nome: 'Caranguejo', qtd: 1 }, { nome: 'Ovo', qtd: 1 }] },
+    ],
+  },
+  {
+    id: 'tortas',
+    nome: 'Tortas',
+    icone: '🥧',
+    tiers: [
+      { tier: 5, nome: 'Torta de Frango', produz: 10,
+        ingredientes: [{ nome: 'Trigo', qtd: 2 }, { nome: 'Frango', qtd: 8 }, { nome: 'Farinha', qtd: 4 }] },
+      { tier: 6, nome: 'Torta de Ganso', produz: 10,
+        ingredientes: [{ nome: 'Repolho', qtd: 6 }, { nome: 'Ganso', qtd: 24 }, { nome: 'Leite', qtd: 6 }, { nome: 'Farinha', qtd: 12 }] },
+      { tier: 7, nome: 'Torta de Porco', produz: 10,
+        ingredientes: [{ nome: 'Milho', qtd: 18 }, { nome: 'Porco', qtd: 72 }, { nome: 'Farinha', qtd: 36 }, { nome: 'Leite', qtd: 18 }] },
+      { tier: 0, label: 'Blindeye', nome: 'Torta Blindeye', produz: 1,
+        ingredientes: [{ nome: 'Ingredientes Raros', qtd: 1 }] },
+    ],
+  },
+  {
+    id: 'assados',
+    nome: 'Assados',
+    icone: '🍖',
+    tiers: [
+      { tier: 5, nome: 'Frango Assado', produz: 10,
+        ingredientes: [{ nome: 'Frango Cru', qtd: 10 }] },
+      { tier: 6, nome: 'Ganso Assado', produz: 10,
+        ingredientes: [{ nome: 'Ganso Cru', qtd: 10 }] },
+      { tier: 7, nome: 'Porco Assado', produz: 10,
+        ingredientes: [{ nome: 'Porco Cru', qtd: 10 }] },
+    ],
+  },
+  {
+    id: 'ensopados',
+    nome: 'Ensopados',
+    icone: '🍲',
+    tiers: [
+      { tier: 5, nome: 'Ensopado de Cabra', produz: 10,
+        ingredientes: [{ nome: 'Nabo', qtd: 4 }, { nome: 'Pão', qtd: 4 }, { nome: 'Carne de Cabra', qtd: 8 }] },
+      { tier: 6, nome: 'Ensopado de Carneiro', produz: 10,
+        ingredientes: [{ nome: 'Batata', qtd: 12 }, { nome: 'Pão', qtd: 12 }, { nome: 'Carneiro', qtd: 24 }] },
+      { tier: 8, nome: 'Ensopado de Carne', produz: 10,
+        ingredientes: [{ nome: 'Abóbora', qtd: 36 }, { nome: 'Pão', qtd: 36 }, { nome: 'Carne', qtd: 72 }] },
+      { tier: 0, label: 'Enguia', nome: 'Ensopado de Enguia', produz: 1,
+        ingredientes: [{ nome: 'Enguia', qtd: 1 }, { nome: 'Planta Rara', qtd: 1 }] },
+    ],
+  },
+  {
+    id: 'sanduiches',
+    nome: 'Sanduíches',
+    icone: '🥪',
+    tiers: [
+      { tier: 5, nome: 'Sanduíche de Cabra', produz: 10,
+        ingredientes: [{ nome: 'Pão', qtd: 4 }, { nome: 'Manteiga', qtd: 2 }, { nome: 'Cabra', qtd: 8 }] },
+      { tier: 6, nome: 'Sanduíche de Carneiro', produz: 10,
+        ingredientes: [{ nome: 'Pão', qtd: 12 }, { nome: 'Carneiro', qtd: 24 }, { nome: 'Manteiga', qtd: 6 }] },
+      { tier: 8, nome: 'Sanduíche de Carne', produz: 10,
+        ingredientes: [{ nome: 'Pão', qtd: 36 }, { nome: 'Carne', qtd: 72 }, { nome: 'Manteiga', qtd: 18 }] },
+      { tier: 0, label: 'Lurcher', nome: 'Sanduíche Lurcher', produz: 1,
+        ingredientes: [{ nome: 'Peixe Raro', qtd: 1 }, { nome: 'Vegetal', qtd: 1 }] },
+    ],
+  },
+  {
+    id: 'especiais',
+    nome: 'Especiais',
+    icone: '⭐',
+    tiers: [
+      { tier: 0, label: 'Lula', nome: 'Salada de Lula', produz: 1,
+        ingredientes: [{ nome: 'Feijão', qtd: 1 }, { nome: 'Cogumelo', qtd: 1 }, { nome: 'Lula', qtd: 1 }] },
+      { tier: 0, label: 'Caranguejo', nome: 'Omelete de Caranguejo', produz: 1,
+        ingredientes: [{ nome: 'Caranguejo', qtd: 1 }, { nome: 'Ovo', qtd: 1 }] },
+      { tier: 0, label: 'Enguia', nome: 'Ensopado de Enguia', produz: 1,
+        ingredientes: [{ nome: 'Enguia', qtd: 1 }, { nome: 'Planta Rara', qtd: 1 }] },
+      { tier: 0, label: 'Lurcher', nome: 'Sanduíche Lurcher', produz: 1,
+        ingredientes: [{ nome: 'Peixe Raro', qtd: 1 }, { nome: 'Vegetal', qtd: 1 }] },
+    ],
+  },
+]
+
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
 function formatNum(n) {
@@ -330,6 +468,9 @@ function formatNum(n) {
 }
 
 const TIER_COLORS = {
+  0: '#6366f1',
+  1: '#64748b',
+  2: '#78716c',
   3: '#94a3b8',
   4: '#22c55e',
   5: '#3b82f6',
@@ -341,22 +482,33 @@ const TIER_COLORS = {
 // ─── Componente principal ────────────────────────────────────────────────────
 
 export function Calculadora() {
-  const [pocaoId, setPocaoId] = useState(POCOES[0].id)
+  const [categoria, setCategoria] = useState('pocao') // 'pocao' | 'comida'
+  const [itemId, setItemId] = useState(POCOES[0].id)
   const [tierIdx, setTierIdx] = useState(0)
   const [quantidade, setQuantidade] = useState(1)
   const [precoVenda, setPrecoVenda] = useState('')
-  const [precosIngredientes, setPrecosIngredientes] = useState({}) // key: `${pocaoId}-${tier}-${nome}`
+  const [precosIngredientes, setPrecosIngredientes] = useState({})
   const [usarValorLoja, setUsarValorLoja] = useState(false)
   const [valorLoja, setValorLoja] = useState('')
   const [usarTaxaRetorno, setUsarTaxaRetorno] = useState(false)
   const [taxaRetorno, setTaxaRetorno] = useState('')
 
-  const pocao = POCOES.find(p => p.id === pocaoId)
+  const LISTA_ATIVA = categoria === 'pocao' ? POCOES : COMIDAS
+
+  const pocao = LISTA_ATIVA.find(p => p.id === itemId)
   const receita = pocao?.tiers[tierIdx]
 
-  // Resetar tier ao trocar poção
+  // Trocar categoria (poção ↔ comida)
+  const handleCategoriaChange = (nova) => {
+    setCategoria(nova)
+    setItemId(nova === 'pocao' ? POCOES[0].id : COMIDAS[0].id)
+    setTierIdx(0)
+    setPrecoVenda('')
+  }
+
+  // Resetar tier ao trocar item
   const handlePocaoChange = (id) => {
-    setPocaoId(id)
+    setItemId(id)
     setTierIdx(0)
     setPrecoVenda('')
   }
@@ -368,7 +520,7 @@ export function Calculadora() {
   }
 
   const getPrecoKey = (nome) =>
-    `${pocaoId}-${receita?.tier}-${nome}`
+    `${categoria}-${itemId}-${receita?.tier}-${receita?.nome}-${nome}`
 
   const getPreco = (nome) =>
     precosIngredientes[getPrecoKey(nome)] ?? ''
@@ -390,7 +542,7 @@ export function Calculadora() {
       const totalCusto = totalQtd * preco
       return { ...ing, totalQtd, preco, totalCusto }
     })
-  }, [receita, qtdCrafts, precosIngredientes, pocaoId])
+  }, [receita, qtdCrafts, precosIngredientes, itemId, categoria])
 
   const TAXA_COMPRA = 0.025  // 2.5% sobre o custo dos ingredientes
   const TAXA_VENDA  = 0.065  // 6.5% sobre o valor de venda
@@ -437,15 +589,32 @@ export function Calculadora() {
     <div className="calc-container">
       {/* ── Seleção ───────────────────────────────────────── */}
       <div className="calc-selecao">
+
+        {/* Toggle poção / comida */}
+        <div className="calc-categoria-toggle">
+          <button
+            className={`calc-categoria-btn ${categoria === 'pocao' ? 'active' : ''}`}
+            onClick={() => handleCategoriaChange('pocao')}
+          >
+            🧪 Poção
+          </button>
+          <button
+            className={`calc-categoria-btn ${categoria === 'comida' ? 'active' : ''}`}
+            onClick={() => handleCategoriaChange('comida')}
+          >
+            🍖 Comida
+          </button>
+        </div>
+
         <div className="calc-selecao-grid">
-          {/* Tipo de poção */}
+          {/* Tipo de poção / comida */}
           <div className="form-group">
-            <label>Tipo de Poção</label>
+            <label>{categoria === 'pocao' ? 'Tipo de Poção' : 'Tipo de Comida'}</label>
             <select
-              value={pocaoId}
+              value={itemId}
               onChange={e => handlePocaoChange(e.target.value)}
             >
-              {POCOES.map(p => (
+              {LISTA_ATIVA.map(p => (
                 <option key={p.id} value={p.id}>
                   {p.icone} {p.nome}
                 </option>
@@ -459,12 +628,12 @@ export function Calculadora() {
             <div className="calc-tier-buttons">
               {pocao?.tiers.map((t, i) => (
                 <button
-                  key={t.tier}
+                  key={i}
                   className={`calc-tier-btn ${i === tierIdx ? 'active' : ''}`}
-                  style={{ '--tier-color': TIER_COLORS[t.tier] }}
+                  style={{ '--tier-color': TIER_COLORS[t.tier] ?? '#6366f1' }}
                   onClick={() => handleTierChange(i)}
                 >
-                  T{t.tier}
+                  {t.label ?? `T${t.tier}`}
                 </button>
               ))}
             </div>
@@ -489,9 +658,9 @@ export function Calculadora() {
             <span className="calc-pocao-nome">{receita.nome}</span>
             <span
               className="calc-tier-badge"
-              style={{ background: TIER_COLORS[receita.tier] }}
+              style={{ background: TIER_COLORS[receita.tier] ?? '#6366f1' }}
             >
-              T{receita.tier}
+              {receita.label ?? `T${receita.tier}`}
             </span>
             <span className="calc-produz-info">
               Produz <strong>{receita.produz}</strong> por craft
