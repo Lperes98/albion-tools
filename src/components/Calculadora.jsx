@@ -611,6 +611,10 @@ export function Calculadora() {
   const taxaRetornoNum = usarTaxaRetorno ? Math.min(parseFloat(taxaRetorno) || 0, 60) : 0
 
   const { totalCraftsEstimado, detalheLotes } = useMemo(() => {
+    // Item não-retornável limita o total: sem cascata
+    if (temIngSemRetorno) {
+      return { totalCraftsEstimado: qtdCrafts, detalheLotes: [] }
+    }
     if (!usarTaxaRetorno || taxaRetornoNum <= 0) {
       return { totalCraftsEstimado: qtdCrafts, detalheLotes: [] }
     }
@@ -625,7 +629,7 @@ export function Calculadora() {
       lote = extra
     }
     return { totalCraftsEstimado: total, detalheLotes: lotes }
-  }, [usarTaxaRetorno, taxaRetornoNum, qtdCrafts])
+  }, [temIngSemRetorno, usarTaxaRetorno, taxaRetornoNum, qtdCrafts])
 
   const linhas = useMemo(() => {
     if (!receita) return []
