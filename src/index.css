@@ -2424,6 +2424,58 @@ a:hover {
   color: var(--text-primary);
 }
 
+.calc-sem-retorno {
+  margin-left: 0.4rem;
+  font-size: 0.85rem;
+  cursor: default;
+}
+
+/* ── Total Necessário editável ── */
+.calc-total-cell {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-end;
+  position: relative;
+}
+
+.calc-total-input {
+  width: 110px;
+  font-weight: 700;
+  text-align: right;
+}
+
+.calc-total-clear {
+  position: absolute;
+  right: -18px;
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  font-size: 0.75rem;
+  padding: 0 0.2rem;
+  transition: color 0.15s;
+}
+
+.calc-total-clear:hover {
+  color: var(--accent-red);
+}
+
+.calc-retorno-auto-badge {
+  font-size: 0.65rem;
+  font-weight: 700;
+  color: var(--accent-green);
+  white-space: nowrap;
+  opacity: 0.85;
+}
+
+.calc-th-hint {
+  font-size: 0.7rem;
+  font-weight: 400;
+  color: var(--accent-gold);
+  text-transform: none;
+  letter-spacing: 0;
+}
+
 .calc-mono {
   font-family: monospace;
 }
@@ -2676,6 +2728,226 @@ a:hover {
 .calc-retorno-lotes strong {
   color: var(--accent-gold);
 }
+
+/* ── Considerar retorno ── */
+.calc-cr-section {
+  margin-top: 1.25rem;
+  padding-top: 1.25rem;
+  border-top: 1px dashed var(--border-color);
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.calc-cr-intro {
+  font-size: 0.82rem;
+  color: var(--text-muted);
+}
+
+.calc-cr-body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.calc-cr-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.calc-cr-item-label {
+  font-size: 0.9rem;
+  color: var(--text-primary);
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  min-width: 200px;
+}
+
+.calc-cr-sub {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  font-weight: 400;
+}
+
+.calc-cr-crafts-hint {
+  font-size: 0.82rem;
+  color: var(--accent-gold);
+  font-weight: 600;
+}
+
+.calc-cr-summary {
+  background: var(--bg-primary);
+  border-radius: 8px;
+  padding: 0.75rem 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.calc-cr-summary-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+}
+
+.calc-cr-summary-row strong {
+  font-family: monospace;
+  color: var(--text-primary);
+}
+
+.calc-cr-total {
+  border-top: 1px solid var(--border-color);
+  margin-top: 0.25rem;
+  padding-top: 0.35rem;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.calc-cr-total strong {
+  color: var(--accent-gold);
+  font-size: 1rem;
+}
+
+.calc-cr-analise {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.calc-cr-gap-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  font-size: 0.85rem;
+  padding: 0.5rem 0.75rem;
+  border-radius: 6px;
+}
+
+.calc-cr-gap-row.falta {
+  background: rgba(239, 68, 68, 0.07);
+  border: 1px solid rgba(239, 68, 68, 0.2);
+}
+
+.calc-cr-gap-row.ok {
+  background: rgba(34, 197, 94, 0.05);
+  border: 1px solid rgba(34, 197, 94, 0.15);
+}
+
+.calc-cr-gap-row span:first-child {
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+/* ── Retorno por item ── */
+.calc-rpi-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-top: 0.25rem;
+}
+
+.calc-rpi-aviso {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  padding: 0.5rem 0.75rem;
+  background: var(--bg-tertiary);
+  border-radius: 6px;
+  border-left: 3px solid var(--accent-gold);
+}
+
+.calc-rpi-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 0.75rem;
+}
+
+.calc-rpi-card {
+  border-radius: 10px;
+  padding: 1rem;
+  border: 2px solid var(--border-color);
+  background: var(--bg-tertiary);
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.calc-rpi-card.retornavel {
+  border-color: rgba(34, 197, 94, 0.4);
+  background: rgba(34, 197, 94, 0.04);
+}
+
+.calc-rpi-card.sem-retorno {
+  border-color: rgba(239, 68, 68, 0.4);
+  background: rgba(239, 68, 68, 0.04);
+}
+
+.calc-rpi-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.calc-rpi-nome {
+  font-weight: 600;
+  font-size: 0.9rem;
+  color: var(--text-primary);
+}
+
+.calc-rpi-badge {
+  font-size: 0.7rem;
+  font-weight: 600;
+  padding: 0.15rem 0.5rem;
+  border-radius: 4px;
+  white-space: nowrap;
+}
+
+.calc-rpi-badge.retorna {
+  background: rgba(34, 197, 94, 0.15);
+  color: var(--accent-green);
+}
+
+.calc-rpi-badge.nao-retorna {
+  background: rgba(239, 68, 68, 0.15);
+  color: var(--accent-red);
+}
+
+.calc-rpi-body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.calc-rpi-linha {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.82rem;
+  gap: 0.5rem;
+}
+
+.calc-rpi-label {
+  color: var(--text-muted);
+}
+
+.calc-rpi-val {
+  font-family: monospace;
+  font-weight: 600;
+  color: var(--text-primary);
+  text-align: right;
+}
+
+.calc-rpi-val.calc-green { color: var(--accent-green); }
+.calc-rpi-val.calc-red   { color: var(--accent-red); }
 
 /* ── Badges estimado ── */
 .calc-estimado-tag {

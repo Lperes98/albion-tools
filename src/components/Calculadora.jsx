@@ -239,6 +239,38 @@ const POCOES = [
     ],
   },
   {
+    id: 'calmante',
+    nome: 'Poção Calmante',
+    icone: '😌',
+    tiers: [
+      {
+        tier: 3,
+        nome: 'Poção Calmante Menor',
+        produz: 10,
+        ingredientes: [
+          { nome: 'Garra Sombria Áspera', qtd: 1, retorna: false },
+          { nome: 'Confrei Claro', qtd: 16 },
+        ],
+      },
+    ],
+  },
+  {
+    id: 'acida',
+    nome: 'Poção Ácida',
+    icone: '🧫',
+    tiers: [
+      {
+        tier: 3,
+        nome: 'Poção Ácida',
+        produz: 10,
+        ingredientes: [
+          { nome: 'Patas Espirituais Ásperas', qtd: 1, retorna: false },
+          { nome: 'Confrei Claro', qtd: 16 },
+        ],
+      },
+    ],
+  },
+  {
     id: 'crescimento',
     nome: 'Poção de Crescimento',
     icone: '🟣',
@@ -462,6 +494,32 @@ const COMIDAS = [
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
+// Quantos crafts resultam de uma qty comprada, dado retorno em cascata
+function calcCraftsFromQty(qty, qtdPerCraft, returnRate) {
+  if (qtdPerCraft <= 0 || qty <= 0) return 0
+  let totalCrafts = 0
+  let available = qty
+  while (available >= qtdPerCraft) {
+    const batch = Math.floor(available / qtdPerCraft)
+    totalCrafts += batch
+    available = Math.floor(available * (returnRate / 100))
+  }
+  return totalCrafts
+}
+
+// Qty mínima a comprar para atingir targetCrafts com a taxa de retorno (busca binária)
+function findMinQtyForCrafts(targetCrafts, qtdPerCraft, returnRate) {
+  if (returnRate <= 0 || targetCrafts <= 0) return targetCrafts * qtdPerCraft
+  let lo = 1
+  let hi = targetCrafts * qtdPerCraft  // sem retorno = upper bound
+  while (lo < hi) {
+    const mid = Math.floor((lo + hi) / 2)
+    if (calcCraftsFromQty(mid, qtdPerCraft, returnRate) >= targetCrafts) hi = mid
+    else lo = mid + 1
+  }
+  return lo
+}
+
 function formatNum(n) {
   if (!n && n !== 0) return '—'
   return n.toLocaleString('pt-BR')
@@ -492,6 +550,9 @@ export function Calculadora() {
   const [valorLoja, setValorLoja] = useState('')
   const [usarTaxaRetorno, setUsarTaxaRetorno] = useState(false)
   const [taxaRetorno, setTaxaRetorno] = useState('')
+  const [usarRetornoPorItem, setUsarRetornoPorItem] = useState(false)
+  const [controllerItem, setControllerItem] = useState(null)  // ingrediente que controla qtdCrafts
+  const [controllerValue, setControllerValue] = useState('')
 
   const LISTA_ATIVA = categoria === 'pocao' ? POCOES : COMIDAS
 
@@ -506,17 +567,16 @@ export function Calculadora() {
     setPrecoVenda('')
   }
 
+  const resetController = () => { setControllerItem(null); setControllerValue('') }
+
   // Resetar tier ao trocar item
   const handlePocaoChange = (id) => {
-    setItemId(id)
-    setTierIdx(0)
-    setPrecoVenda('')
+    setItemId(id); setTierIdx(0); setPrecoVenda(''); resetController()
   }
 
   // Resetar preço de venda ao trocar tier
   const handleTierChange = (idx) => {
-    setTierIdx(idx)
-    setPrecoVenda('')
+    setTierIdx(idx); setPrecoVenda(''); resetController()
   }
 
   const getPrecoKey = (nome) =>
@@ -532,22 +592,22 @@ export function Calculadora() {
     }))
   }
 
-  const qtdCrafts = Math.max(1, parseInt(quantidade) || 1)
+  const temIngSemRetorno = receita?.ingredientes.some(i => i.retorna === false) ?? false
 
-  const linhas = useMemo(() => {
-    if (!receita) return []
-    return receita.ingredientes.map(ing => {
-      const totalQtd = ing.qtd * qtdCrafts
-      const preco = parseFloat(getPreco(ing.nome)) || 0
-      const totalCusto = totalQtd * preco
-      return { ...ing, totalQtd, preco, totalCusto }
-    })
-  }, [receita, qtdCrafts, precosIngredientes, itemId, categoria])
+  // Prioridade: 1) total manual, 2) campo quantidade
+  const qtdCrafts = (() => {
+    if (controllerItem && receita) {
+      const ing = receita.ingredientes.find(i => i.nome === controllerItem)
+      const val = parseFloat(controllerValue)
+      if (ing && val > 0) return Math.max(1, Math.floor(val / ing.qtd))
+    }
+    return Math.max(1, parseInt(quantidade) || 1)
+  })()
 
   const TAXA_COMPRA = 0.025  // 2.5% sobre o custo dos ingredientes
   const TAXA_VENDA  = 0.065  // 6.5% sobre o valor de venda
 
-  // ── Taxa de retorno: calcula crafts extras em cascata ──────────────────────
+  // ── Taxa de retorno: calculada antes de linhas ─────────────────────────────
   const taxaRetornoNum = usarTaxaRetorno ? Math.min(parseFloat(taxaRetorno) || 0, 60) : 0
 
   const { totalCraftsEstimado, detalheLotes } = useMemo(() => {
@@ -567,7 +627,43 @@ export function Calculadora() {
     return { totalCraftsEstimado: total, detalheLotes: lotes }
   }, [usarTaxaRetorno, taxaRetornoNum, qtdCrafts])
 
-  const estimado = usarTaxaRetorno && taxaRetornoNum > 0
+  const linhas = useMemo(() => {
+    if (!receita) return []
+    return receita.ingredientes.map(ing => {
+      let totalQtd
+      if (ing.retorna === false) {
+        totalQtd = ing.qtd * totalCraftsEstimado
+      } else if (temIngSemRetorno && taxaRetornoNum > 0) {
+        totalQtd = Math.round(ing.qtd * qtdCrafts * (1 - taxaRetornoNum / 100))
+      } else {
+        totalQtd = ing.qtd * qtdCrafts
+      }
+      const preco = parseFloat(getPreco(ing.nome)) || 0
+      const totalCusto = totalQtd * preco
+      return { ...ing, totalQtd, preco, totalCusto, semRetorno: ing.retorna === false }
+    })
+  }, [receita, qtdCrafts, totalCraftsEstimado, taxaRetornoNum, temIngSemRetorno, precosIngredientes, itemId, categoria])
+
+  const estimado    = usarTaxaRetorno && taxaRetornoNum > 0
+  const extraCrafts = totalCraftsEstimado - qtdCrafts
+
+  // Detalhamento por item: retornáveis e não-retornáveis
+  const retornoPorItem = useMemo(() => {
+    if (!receita) return []
+    return linhas.map(l => {
+      if (l.semRetorno) {
+        // Não retorna: calcular custo extra para cobrir os crafts extras
+        const extraNecessario = l.qtd * extraCrafts
+        const custoExtra = extraNecessario * l.preco
+        return { ...l, tipo: 'sem-retorno', extraNecessario, custoExtra }
+      } else {
+        // Retorna: calcular qty devolvida dos crafts base e seu valor
+        const qtyDevolvida = Math.floor(l.qtd * qtdCrafts * (taxaRetornoNum / 100))
+        const valorDevolvido = qtyDevolvida * l.preco
+        return { ...l, tipo: 'retorna', qtyDevolvida, valorDevolvido }
+      }
+    })
+  }, [linhas, extraCrafts, qtdCrafts, taxaRetornoNum, receita])
 
   const totalItens        = receita ? receita.produz * totalCraftsEstimado : 0
   const totalCusto        = linhas.reduce((s, l) => s + l.totalCusto, 0)
@@ -645,8 +741,11 @@ export function Calculadora() {
             <input
               type="number"
               min="1"
-              value={quantidade}
-              onChange={e => setQuantidade(e.target.value)}
+              value={qtdCrafts}
+              onChange={e => {
+                setQuantidade(e.target.value)
+                resetController()
+              }}
             />
           </div>
         </div>
@@ -681,7 +780,12 @@ export function Calculadora() {
                 <tr>
                   <th>Ingrediente</th>
                   <th className="text-right">Qtd / Craft</th>
-                  <th className="text-right">Total Necessário</th>
+                  <th className="text-right">
+                    Total Necessário
+                    {controllerItem && (
+                      <span className="calc-th-hint"> · manual</span>
+                    )}
+                  </th>
                   <th className="text-right">Preço Unitário</th>
                   <th className="text-right">Custo Total</th>
                 </tr>
@@ -689,9 +793,34 @@ export function Calculadora() {
               <tbody>
                 {linhas.map(l => (
                   <tr key={l.nome}>
-                    <td className="calc-ing-nome">{l.nome}</td>
+                    <td className="calc-ing-nome">
+                      {l.nome}
+                      {l.semRetorno && (
+                        <span className="calc-sem-retorno" title="Este item nunca retorna">⚠️</span>
+                      )}
+                    </td>
                     <td className="text-right calc-mono">{formatNum(l.qtd)}</td>
-                    <td className="text-right calc-mono calc-bold">{formatNum(l.totalQtd)}</td>
+                    <td className="text-right">
+                      <div className="calc-total-cell">
+                        <input
+                          className="calc-price-input calc-total-input"
+                          type="number"
+                          min="0"
+                          value={controllerItem === l.nome ? controllerValue : l.totalQtd}
+                          onChange={e => {
+                            setControllerItem(l.nome)
+                            setControllerValue(e.target.value)
+                          }}
+                          onBlur={e => {
+                            if (controllerItem === l.nome && (!e.target.value || parseFloat(e.target.value) <= 0))
+                              resetController()
+                          }}
+                        />
+                        {controllerItem === l.nome && (
+                          <button className="calc-total-clear" onClick={resetController} title="Limpar">✕</button>
+                        )}
+                      </div>
+                    </td>
                     <td className="text-right">
                       <input
                         className="calc-price-input"
@@ -732,6 +861,7 @@ export function Calculadora() {
               </tfoot>
             </table>
           </div>
+
         </div>
       )}
 
@@ -812,6 +942,82 @@ export function Calculadora() {
                   </span>
                 </div>
               )}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* ── Retorno por item ─────────────────────────────── */}
+      {receita && (
+        <div className="calc-section calc-loja-section">
+          <label className="calc-loja-checkbox-label">
+            <input
+              type="checkbox"
+              checked={usarRetornoPorItem}
+              onChange={e => setUsarRetornoPorItem(e.target.checked)}
+            />
+            Retorno por item
+          </label>
+
+          {usarRetornoPorItem && (
+            <div className="calc-rpi-wrapper">
+              {!estimado && (
+                <p className="calc-rpi-aviso">
+                  Ative a <strong>Taxa de Retorno</strong> e informe os preços dos ingredientes para ver o detalhamento.
+                </p>
+              )}
+              <div className="calc-rpi-grid">
+                {retornoPorItem.map(item => (
+                  <div
+                    key={item.nome}
+                    className={`calc-rpi-card ${item.tipo === 'sem-retorno' ? 'sem-retorno' : 'retornavel'}`}
+                  >
+                    <div className="calc-rpi-header">
+                      <span className="calc-rpi-nome">{item.nome}</span>
+                      {item.semRetorno && (
+                        <span className="calc-rpi-badge nao-retorna">Não retorna ⚠️</span>
+                      )}
+                      {!item.semRetorno && (
+                        <span className="calc-rpi-badge retorna">Retorna ♻️</span>
+                      )}
+                    </div>
+
+                    {item.tipo === 'retorna' && (
+                      <div className="calc-rpi-body">
+                        <div className="calc-rpi-linha">
+                          <span className="calc-rpi-label">Devolvidos (base {qtdCrafts} crafts)</span>
+                          <span className="calc-rpi-val">{formatNum(item.qtyDevolvida)} un.</span>
+                        </div>
+                        <div className="calc-rpi-linha">
+                          <span className="calc-rpi-label">Valor do retorno</span>
+                          <span className="calc-rpi-val calc-green">
+                            {item.valorDevolvido > 0 ? `+ ${formatNum(Math.round(item.valorDevolvido))}` : item.preco > 0 ? '0' : '—'}
+                          </span>
+                        </div>
+                      </div>
+                    )}
+
+                    {item.tipo === 'sem-retorno' && (
+                      <div className="calc-rpi-body">
+                        <div className="calc-rpi-linha">
+                          <span className="calc-rpi-label">Crafts extras (retorno)</span>
+                          <span className="calc-rpi-val">{extraCrafts} crafts</span>
+                        </div>
+                        <div className="calc-rpi-linha">
+                          <span className="calc-rpi-label">Extras necessários</span>
+                          <span className="calc-rpi-val">{formatNum(item.extraNecessario)} un.</span>
+                        </div>
+                        <div className="calc-rpi-linha">
+                          <span className="calc-rpi-label">Custo estimado de compra</span>
+                          <span className="calc-rpi-val calc-red">
+                            {item.custoExtra > 0 ? `− ${formatNum(Math.round(item.custoExtra))}` : item.preco > 0 ? '0' : '—'}
+                          </span>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
             </div>
           )}
         </div>
