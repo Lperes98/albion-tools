@@ -1,9 +1,9 @@
 import { useState, useEffect, useMemo, useCallback } from 'react'
 import recipesRaw from '../../data/recipes.json'
-import { consultarPrecos, CIDADES_API } from '../../services/albionApi'
+import { consultarPrecos, buscarVolume6h, CIDADES_API } from '../../services/albionApi'
 import {
   connectWebSocket, disconnectWebSocket,
-  getWsPrice, getWsStatus, subscribeWs, subscribeWsData, getWsBuyOrders
+  getWsPrice, getWsStatus, subscribeWs, subscribeWsData, getWsBuyOrders, debugBuyOrdersCache
 } from '../../services/websocketClient'
 
 // ─── Labels de categoria em PT-BR ────────────────────────────────────────────
@@ -104,6 +104,7 @@ export function RentabilidadeTab({ servidor, setServidor, itensDisponiveis }) {
   const [rows, setRows] = useState([])
   const [cityMargins, setCityMargins] = useState({})
   const [oportunidades, setOportunidades] = useState([])
+  const [volumeOport, setVolumeOport] = useState({})
   const [loading, setLoading] = useState(false)
   const [loadingOport, setLoadingOport] = useState(false)
 
@@ -339,6 +340,12 @@ export function RentabilidadeTab({ servidor, setServidor, itensDisponiveis }) {
 
     novas.sort((a, b) => b.margem - a.margem)
     setOportunidades(novas)
+
+    // Busca volume 6h para as oportunidades encontradas
+    const uniIds = [...new Set(novas.map(o => o.tierId))]
+    const uniCities = [...new Set(novas.map(o => o.cityKey))]
+    buscarVolume6h(uniIds, uniCities, servidor).then(vol => setVolumeOport(vol))
+
     setLoadingOport(false)
   }, [subcategoria, baseItems, servidor, taxaRetorno, taxaMercado, custoLoja, quantidade, nameMap])
 
@@ -488,6 +495,9 @@ export function RentabilidadeTab({ servidor, setServidor, itensDisponiveis }) {
               {(loading || loadingOport) ? '...' : '↻'} Atualizar
             </button>
           )}
+          <button className="btn-refresh-rent" onClick={debugBuyOrdersCache} title="Debug WS cache no console">
+            🔍 Debug WS
+          </button>
 
         </div>
       </div>
@@ -563,7 +573,7 @@ export function RentabilidadeTab({ servidor, setServidor, itensDisponiveis }) {
             <CidadesComparativo cityMargins={cityMargins} rows={rows} usarOrdemCompra={usarOrdemCompra} />
 
             {/* Oportunidades de ordem de compra */}
-            <OportunidadesSection oportunidades={oportunidades} quantidade={quantidade} loading={loadingOport} subLabel={subLabel(subcategoria)} wsDataVersion={wsDataVersion} />
+            <OportunidadesSection oportunidades={oportunidades} quantidade={quantidade} loading={loadingOport} subLabel={subLabel(subcategoria)} wsDataVersion={wsDataVersion} volumeData={volumeOport} />
           </>
         ) : (
           <div className="empty-state">
@@ -704,7 +714,7 @@ function CidadesComparativo({ cityMargins, rows, usarOrdemCompra }) {
   )
 }
 
-function OportunidadesSection({ oportunidades, quantidade, loading, subLabel, wsDataVersion: _ }) {
+function OportunidadesSection({ oportunidades, quantidade, loading, subLabel, wsDataVersion: _, volumeData = {} }) {
   return (
     <div className="oportunidades-section">
       <div className="oport-header">
@@ -734,6 +744,7 @@ function OportunidadesSection({ oportunidades, quantidade, loading, subLabel, ws
                 <th>Lucro/Batch</th>
                 <th>Margem</th>
                 <th>Lucro Total ({quantidade}x)</th>
+                <th title="Volume vendido no último período de 6h registrado">Vol. 6h</th>
                 <th title="Qtd. total em pedidos de compra acima do break-even (dados do WS)">Qtd. Lucrativa 🔴</th>
               </tr>
             </thead>
@@ -753,6 +764,11 @@ function OportunidadesSection({ oportunidades, quantidade, loading, subLabel, ws
                     <td className="profit-positive">{formatSilver(Math.round(op.lucro))}</td>
                     <td><span className="oport-margem">{op.margem.toFixed(1)}%</span></td>
                     <td className="profit-positive">{formatSilver(Math.round(op.lucroTotal))}</td>
+                    <td className="center" title="Volume vendido no último período de 6h registrado">
+                      {volumeData[`${op.tierId}__${op.cityKey}`] != null
+                        ? volumeData[`${op.tierId}__${op.cityKey}`].toLocaleString('pt-BR')
+                        : '—'}
+                    </td>
                     <td className={qtdLucrativa > 0 ? 'profit-positive font-bold' : 'comp-nodata'}>
                       {buyOrders.length === 0 ? <span title="Visite o mercado no jogo para obter dados">—</span> : qtdLucrativa.toLocaleString('pt-BR')}
                     </td>

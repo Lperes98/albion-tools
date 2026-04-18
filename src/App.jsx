@@ -8,7 +8,7 @@ import { PriceHistory } from './components/PriceHistory'
 import { Favoritos } from './components/Favoritos'
 import { CraftTab } from './components/craft'
 import { Calculadora } from './components/Calculadora'
-import { RentabilidadeTab } from './components/rentabilidade'
+import { RentabilidadeTab, RentabilidadeViagemTab } from './components/rentabilidade'
 import { useFavoritos } from './hooks/useFavoritos'
 import { useDarkMode } from './hooks/useDarkMode'
 import { carregarItens, buscarItensPorNome, consultarPrecos, QUALIDADES } from './services/albionApi'
@@ -117,6 +117,13 @@ function App() {
           <span className="tab-icon">📈</span>
           Rentabilidade
         </button>
+        <button
+          className={`tab-button ${abaAtiva === 'viagem' ? 'active' : ''}`}
+          onClick={() => setAbaAtiva('viagem')}
+        >
+          <span className="tab-icon">🚢</span>
+          Rent. Viagem
+        </button>
       </nav>
 
       <main className="main-content">
@@ -204,6 +211,20 @@ function App() {
         {abaAtiva === 'calculadora' && (
           <div className="content content-full">
             <Calculadora />
+          </div>
+        )}
+
+        {/* Aba Rentabilidade de Viagem */}
+        {abaAtiva === 'viagem' && (
+          <div className="content content-full">
+            {loadingItens ? (
+              <div className="loading-screen">
+                <div className="spinner"></div>
+                <p>Carregando lista de itens...</p>
+              </div>
+            ) : (
+              <RentabilidadeViagemTab servidor={servidor} setServidor={setServidor} itensDisponiveis={todosItens} />
+            )}
           </div>
         )}
 

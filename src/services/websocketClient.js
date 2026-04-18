@@ -39,11 +39,17 @@ function handleMessage(raw) {
   const orders = msg.data?.Orders
   if (!Array.isArray(orders)) return
 
+  const requests = orders.filter(o => o.AuctionType === 'request')
+  if (requests.length > 0) {
+    console.log('[WS] buy orders recebidos:', requests.length, '| exemplo:', requests[0])
+  }
+
   let updated = false
   for (const order of orders) {
     const itemId = order.ItemTypeId
     const city = locationToCity(order.LocationId)
-    const price = order.UnitPriceSilver
+    // WS usa prata × 10000 internamente; API usa prata — normaliza para prata
+    const price = Math.round(order.UnitPriceSilver / 10000)
     if (!itemId || !price) continue
 
     if (!priceCache.has(itemId)) priceCache.set(itemId, {})
@@ -62,11 +68,13 @@ function handleMessage(raw) {
       }
       // Armazena pedido de compra com quantidade por ID de ordem
       const orderId = order.Id
+      console.log('[WS] request order - orderId:', orderId, 'amount:', order.Amount, 'price:', price)
       if (orderId != null && order.Amount > 0) {
         if (!buyOrdersCache.has(itemId)) buyOrdersCache.set(itemId, {})
         const bCity = buyOrdersCache.get(itemId)
         if (!bCity[city]) bCity[city] = {}
         bCity[city][orderId] = { price, amount: order.Amount }
+        console.log('[WS] stored! cache size:', buyOrdersCache.size)
       }
     }
   }
@@ -108,8 +116,25 @@ export function getWsPrice(itemId, city) {
 // Retorna pedidos de compra ordenados por preço desc: [{price, amount}]
 export function getWsBuyOrders(itemId, city) {
   const byCity = buyOrdersCache.get(itemId)
-  if (!byCity?.[city]) return []
+  if (!byCity?.[city]) {
+    if (buyOrdersCache.size > 0 && !byCity) {
+      // item não está no cache — chaves disponíveis para debug
+      // console.debug('[WS] buyOrders miss - itemId:', itemId, 'city:', city, 'cache keys:', [...buyOrdersCache.keys()].slice(0,5))
+    }
+    return []
+  }
   return Object.values(byCity[city]).sort((a, b) => b.price - a.price)
+}
+
+export function debugBuyOrdersCache() {
+  const result = {}
+  for (const [itemId, cities] of buyOrdersCache.entries()) {
+    result[itemId] = {}
+    for (const [city, orders] of Object.entries(cities)) {
+      result[itemId][city] = Object.values(orders).length + ' orders'
+    }
+  }
+  console.log('[WS] buyOrdersCache:', result)
 }
 
 export function getWsStatus() {

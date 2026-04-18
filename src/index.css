@@ -3518,6 +3518,47 @@ a:hover {
 .oport-top td { background: #22c55e08; }
 .oport-top:hover td { background: #22c55e12 !important; }
 
+/* ─── Rentabilidade de Viagem ──────────────────────────────────────────────── */
+.viagem-section { margin-top: 1.5rem; }
+
+.viagem-origem-badge {
+  font-size: 0.8rem;
+  font-weight: 500;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-color);
+  color: var(--text-secondary);
+  padding: 0.2rem 0.6rem;
+  border-radius: 20px;
+  margin-left: 0.75rem;
+  vertical-align: middle;
+}
+
+.viagem-legend {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.viagem-leg {
+  font-size: 0.75rem;
+  padding: 0.15rem 0.5rem;
+  border-radius: 4px;
+  font-weight: 600;
+}
+
+.viagem-table td {
+  text-align: center;
+  min-width: 80px;
+}
+
+.viagem-lucro {
+  font-size: 0.72rem;
+  opacity: 0.75;
+  margin-top: 0.1rem;
+}
+
 .oport-nome { font-weight: 600; color: var(--text-primary); }
 .oport-city { color: var(--text-secondary); }
 .oport-preco { color: var(--accent-blue); font-weight: 600; }

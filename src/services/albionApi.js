@@ -61,12 +61,19 @@ function getItemsFromCache() {
 
 function saveItemsToCache(items) {
   try {
+    // Salva apenas os campos e idiomas necessários para caber no localStorage
+    const minimal = items.map(({ UniqueName, LocalizedNames }) => ({
+      UniqueName,
+      LocalizedNames: LocalizedNames
+        ? { 'PT-BR': LocalizedNames['PT-BR'], 'EN-US': LocalizedNames['EN-US'] }
+        : null
+    }))
     localStorage.setItem(CACHE_KEY, JSON.stringify({
-      items,
+      items: minimal,
       timestamp: Date.now()
     }))
   } catch (e) {
-    console.warn('Erro ao salvar cache:', e)
+    // Silencioso — browser HTTP cache ainda funciona
   }
 }
 
@@ -78,6 +85,7 @@ export async function carregarItens() {
     return cached
   }
 
+  localStorage.removeItem(CACHE_KEY) // remove cache antigo caso esteja com formato completo
   console.log('Baixando lista de itens...')
   const response = await fetch(ITEMS_JSON_URL)
   if (!response.ok) throw new Error('Erro ao baixar itens')
@@ -138,6 +146,32 @@ export async function consultarPrecos(itemIds, servidor = 'west', qualidade = 1)
   if (!response.ok) throw new Error('Erro ao consultar preços')
 
   return response.json()
+}
+
+// Busca volume de vendas nas últimas 6h para múltiplos itens/cidades
+// Retorna: { [itemId+city]: item_count }
+export async function buscarVolume6h(itemIds, cities, servidor = 'west') {
+  if (!itemIds.length || !cities.length) return {}
+  const baseUrl = SERVERS[servidor] || SERVERS.west
+  const BATCH = 30
+  const result = {}
+  for (let i = 0; i < itemIds.length; i += BATCH) {
+    try {
+      const ids = itemIds.slice(i, i + BATCH).join(',')
+      const locs = cities.join(',')
+      const url = `${baseUrl}/api/v2/stats/history/${ids}.json?locations=${locs}&time-scale=6`
+      const res = await fetch(url)
+      if (!res.ok) continue
+      const data = await res.json()
+      for (const entry of data) {
+        if (!entry.data?.length) continue
+        const last = entry.data[entry.data.length - 1]
+        const key = `${entry.item_id}__${entry.location?.replace(/\s/g, '')}`
+        result[key] = last.item_count || 0
+      }
+    } catch {}
+  }
+  return result
 }
 
 // Consulta histórico de preços
