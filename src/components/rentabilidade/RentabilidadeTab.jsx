@@ -83,6 +83,25 @@ function useRecipeGroups() {
   }, [])
 }
 
+// ─── Bônus de crafting por cidade ────────────────────────────────────────────
+// Fonte: craftingmodifiers.json (ao-bin-dumps). Valor = retorno adicional (%)
+// Base com foco máximo: 15%. Cidade favorável adiciona +15% para o tipo do item.
+const CITY_CRAFT_BONUSES = {
+  Thetford:    { mace: 15, staffnature: 15, stafffire: 15, leather: 15, cloth: 15 },
+  Lymhurst:    { sword: 15, bow: 15, staffarcane: 15, leather: 15 },
+  Bridgewatch: { crossbow: 15, dagger: 15, staffcurse: 15, plate: 15, cloth: 15 },
+  Martlock:    { axe: 15, quarterstaff: 15, stafffrost: 15, plate: 15, offhand: 15 },
+  FortSterling:{ hammer: 15, spear: 15, staffholy: 15, plate: 15, cloth: 15 },
+  Brecilien:   { toolkit: 15, food: 15, potions: 15, cape: 15, bag: 15, knuckles: 15 },
+  Caerleon:    { axe: 15, crossbow: 15, hammer: 15, mace: 15, sword: 15, plate: 15 },
+  BlackMarket: {},
+}
+
+function getAutoRetorno(cityKey, sub) {
+  const bonus = (CITY_CRAFT_BONUSES[cityKey] || {})[sub] || 0
+  return 15 + bonus
+}
+
 // ─── Componente principal ─────────────────────────────────────────────────────
 export function RentabilidadeTab({ servidor, setServidor, itensDisponiveis }) {
   const groups = useRecipeGroups()
@@ -94,7 +113,7 @@ export function RentabilidadeTab({ servidor, setServidor, itensDisponiveis }) {
 
   // Configurações
   const [cidade, setCidade] = useState('Caerleon')
-  const [taxaRetorno, setTaxaRetorno] = useState(27.5)
+  const [taxaRetorno, setTaxaRetorno] = useState(15)
   const [taxaMercado, setTaxaMercado] = useState(3)
   const [custoLoja, setCustoLoja] = useState(0)
   const [quantidade, setQuantidade] = useState(1)
@@ -129,6 +148,13 @@ export function RentabilidadeTab({ servidor, setServidor, itensDisponiveis }) {
 
   function handleCategoria(v) { setCategoria(v); setSubcategoria(''); setBaseItem('') }
   function handleSubcategoria(v) { setSubcategoria(v); setBaseItem('') }
+
+  // Auto-preenche taxa de retorno conforme cidade e subcategoria
+  const cidadeKey = cidade.replace(/\s/g, '')
+  const cityCraftBonus = (CITY_CRAFT_BONUSES[cidadeKey] || {})[subcategoria] || 0
+  useEffect(() => {
+    setTaxaRetorno(getAutoRetorno(cidadeKey, subcategoria))
+  }, [cidade, subcategoria])
 
   // Calcula lucro para uma linha
   // ordemCompra: override explícito (undefined = usa state usarOrdemCompra)
@@ -436,7 +462,14 @@ export function RentabilidadeTab({ servidor, setServidor, itensDisponiveis }) {
             />
           </div>
           <div className="rent-field rent-field-sm">
-            <label>Retorno (%)</label>
+            <label>
+              Retorno (%)
+              {cityCraftBonus > 0 && (
+                <span className="city-bonus-tag" title={`+${cityCraftBonus}% de bônus de crafting desta cidade para este tipo de item`}>
+                  +{cityCraftBonus}%
+                </span>
+              )}
+            </label>
             <input
               type="number" min="0" max="60" step="0.5"
               value={taxaRetorno}

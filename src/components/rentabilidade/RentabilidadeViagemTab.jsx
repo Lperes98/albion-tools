@@ -47,6 +47,23 @@ function baseId(uniqueName) {
   return uniqueName.replace(/^T\d+_/, '')
 }
 
+// ─── Bônus de crafting por cidade ─────────────────────────────────────────────
+const CITY_CRAFT_BONUSES = {
+  Thetford:    { mace: 15, staffnature: 15, stafffire: 15, leather: 15, cloth: 15 },
+  Lymhurst:    { sword: 15, bow: 15, staffarcane: 15, leather: 15 },
+  Bridgewatch: { crossbow: 15, dagger: 15, staffcurse: 15, plate: 15, cloth: 15 },
+  Martlock:    { axe: 15, quarterstaff: 15, stafffrost: 15, plate: 15, offhand: 15 },
+  FortSterling:{ hammer: 15, spear: 15, staffholy: 15, plate: 15, cloth: 15 },
+  Brecilien:   { toolkit: 15, food: 15, potions: 15, cape: 15, bag: 15, knuckles: 15 },
+  Caerleon:    { axe: 15, crossbow: 15, hammer: 15, mace: 15, sword: 15, plate: 15 },
+  BlackMarket: {},
+}
+
+function getAutoRetorno(cityKey, sub) {
+  const bonus = (CITY_CRAFT_BONUSES[cityKey] || {})[sub] || 0
+  return 15 + bonus
+}
+
 function useRecipeGroups() {
   return useMemo(() => {
     const groups = {}
@@ -74,7 +91,7 @@ export function RentabilidadeViagemTab({ servidor, setServidor, itensDisponiveis
   const [subcategoria, setSubcategoria] = useState('')
   const [baseItem, setBaseItem] = useState('')
   const [cidadeOrigem, setCidadeOrigem] = useState('Caerleon')
-  const [taxaRetorno, setTaxaRetorno] = useState(27.5)
+  const [taxaRetorno, setTaxaRetorno] = useState(15)
   const [taxaMercado, setTaxaMercado] = useState(3)
   const [custoLoja, setCustoLoja] = useState(0)
   const [quantidade, setQuantidade] = useState(1)
@@ -86,12 +103,23 @@ export function RentabilidadeViagemTab({ servidor, setServidor, itensDisponiveis
   const [volumeData, setVolumeData] = useState({})
   const [loading, setLoading] = useState(false)
 
+  const [oportunidadesViagem, setOportunidadesViagem] = useState([])
+  const [volumeDataOport, setVolumeDataOport] = useState({})
+  const [loadingOport, setLoadingOport] = useState(false)
+
   const categorias = Object.keys(groups).sort()
   const subcategorias = categoria ? Object.keys(groups[categoria] || {}).sort() : []
   const baseItems = (categoria && subcategoria) ? (groups[categoria]?.[subcategoria] || []) : []
 
   function handleCategoria(v) { setCategoria(v); setSubcategoria(''); setBaseItem('') }
   function handleSubcategoria(v) { setSubcategoria(v); setBaseItem('') }
+
+  // Auto-preenche taxa de retorno conforme cidade de origem e subcategoria
+  const origemKey = cidadeOrigem.replace(/\s/g, '')
+  const cityCraftBonus = (CITY_CRAFT_BONUSES[origemKey] || {})[subcategoria] || 0
+  useEffect(() => {
+    setTaxaRetorno(getAutoRetorno(origemKey, subcategoria))
+  }, [cidadeOrigem, subcategoria])
 
   const nameMap = useMemo(() => {
     const m = {}
@@ -171,7 +199,6 @@ export function RentabilidadeViagemTab({ servidor, setServidor, itensDisponiveis
     // Para cada cidade de destino, calcula lucro de venda
     const novaTabela = []
     for (const cityKey of Object.keys(CITY_DISPLAY)) {
-      if (cityKey === origemKey) continue
       const cityPrices = pricesByCity[cityKey] || {}
 
       const tiersResult = craftCosts.map(({ recipe, custo, semPreco }) => {
@@ -203,13 +230,113 @@ export function RentabilidadeViagemTab({ servidor, setServidor, itensDisponiveis
 
     // Busca volume 6h para cidades de destino × tiers
     const uniIds = tiers.map(r => r.id)
-    const uniCities = Object.keys(CITY_DISPLAY).filter(c => c !== origemKey)
+    const uniCities = Object.keys(CITY_DISPLAY)
     buscarVolume6h(uniIds, uniCities, servidor).then(vol => setVolumeData(vol))
 
     setLoading(false)
   }, [baseItem, cidadeOrigem, servidor, taxaRetorno, taxaMercado, custoLoja, quantidade, usarOrdemCompra])
 
   useEffect(() => { if (baseItem) calcular() }, [baseItem, cidadeOrigem, servidor, taxaRetorno, taxaMercado, custoLoja, quantidade, usarOrdemCompra])
+
+  const calcularOportunidadesViagem = useCallback(async () => {
+    if (!subcategoria || !baseItems.length) return
+    setLoadingOport(true)
+
+    const todasReceitas = []
+    for (const base of baseItems) {
+      for (let t = 2; t <= 8; t++) {
+        const key = `T${t}_${base}`
+        if (recipes[key]) todasReceitas.push({ ...recipes[key], baseId: base })
+      }
+    }
+    if (!todasReceitas.length) { setLoadingOport(false); return }
+
+    const allIds = new Set()
+    for (const r of todasReceitas) {
+      allIds.add(r.id)
+      for (const ing of r.ingredients) allIds.add(ing.id)
+    }
+
+    const BATCH = 50
+    const idsArray = [...allIds]
+    let apiData = []
+    for (let i = 0; i < idsArray.length; i += BATCH) {
+      try {
+        const data = await consultarPrecos(idsArray.slice(i, i + BATCH), servidor, '0,1')
+        apiData = apiData.concat(data)
+      } catch {}
+    }
+
+    const pricesByCity = {}
+    for (const d of apiData) {
+      if (!d.city) continue
+      const cityKey = d.city.replace(/\s/g, '')
+      if (!pricesByCity[cityKey]) pricesByCity[cityKey] = {}
+      if (!pricesByCity[cityKey][d.item_id]) pricesByCity[cityKey][d.item_id] = {}
+      const entry = pricesByCity[cityKey][d.item_id]
+      if (d.sell_price_min > 0)
+        entry.sellMin = entry.sellMin ? Math.min(entry.sellMin, d.sell_price_min) : d.sell_price_min
+      if (d.buy_price_max > 0)
+        entry.buyMax = entry.buyMax ? Math.max(entry.buyMax, d.buy_price_max) : d.buy_price_max
+    }
+
+    const ret = taxaRetorno / 100
+    const tax = taxaMercado / 100
+    const qtd = Math.max(1, quantidade)
+    const oriKey = cidadeOrigem.replace(/\s/g, '')
+    const origemPrices = pricesByCity[oriKey] || {}
+
+    const novas = []
+    for (const r of todasReceitas) {
+      let custo = 0
+      let semPreco = false
+      for (const ing of r.ingredients) {
+        const preco = origemPrices[ing.id]?.sellMin || 0
+        if (preco === 0) semPreco = true
+        custo += ing.count * (1 - ret) * preco
+      }
+      custo += (r.silver || 0) + custoLoja
+      if (semPreco) continue
+
+      for (const [cityKey, cityPrices] of Object.entries(pricesByCity)) {
+        const itemPreco = usarOrdemCompra
+          ? (cityPrices[r.id]?.buyMax || 0)
+          : (cityPrices[r.id]?.sellMin || 0)
+        if (itemPreco === 0) continue
+        const receitaBruta = itemPreco * r.amountCrafted
+        const receitaLiquida = receitaBruta * (1 - tax)
+        const lucro = receitaLiquida - custo
+        const margem = (lucro / receitaBruta) * 100
+        if (margem < 5) continue
+        const nomeItem = (nameMap[`T4_${r.baseId}`] || nameMap[`T5_${r.baseId}`] || r.baseId)?.replace(/^T\d+\s/, '')
+        novas.push({
+          cidade: CITY_DISPLAY[cityKey] || cityKey,
+          cityKey,
+          tierId: r.id,
+          tier: r.tier,
+          nomeItem,
+          margem,
+          lucro: Math.round(lucro),
+          lucroTotal: Math.round(lucro * qtd),
+          precoVenda: itemPreco,
+          custoIngredientes: Math.round(custo),
+        })
+      }
+    }
+
+    novas.sort((a, b) => b.margem - a.margem)
+    setOportunidadesViagem(novas)
+
+    const uniIds = [...new Set(novas.map(o => o.tierId))]
+    const uniCities = [...new Set(novas.map(o => o.cityKey))]
+    buscarVolume6h(uniIds, uniCities, servidor).then(vol => setVolumeDataOport(vol))
+
+    setLoadingOport(false)
+  }, [subcategoria, baseItems, cidadeOrigem, servidor, taxaRetorno, taxaMercado, custoLoja, quantidade, usarOrdemCompra, nameMap])
+
+  useEffect(() => {
+    if (subcategoria) calcularOportunidadesViagem()
+  }, [subcategoria, cidadeOrigem, servidor, taxaRetorno, taxaMercado, custoLoja, quantidade, usarOrdemCompra])
 
   const itemDisplayName = baseItem
     ? (nameMap[`T4_${baseItem}`] || nameMap[`T5_${baseItem}`] || baseItem)?.replace(/^(T\d+\s)/, '')
@@ -236,13 +363,22 @@ export function RentabilidadeViagemTab({ servidor, setServidor, itensDisponiveis
           </div>
           <div className="rent-field">
             <label>Item</label>
-            <select value={baseItem} onChange={e => setBaseItem(e.target.value)} disabled={!subcategoria}>
-              <option value="">Selecionar...</option>
-              {baseItems.map(b => {
-                const display = (nameMap[`T4_${b}`] || nameMap[`T5_${b}`] || b)?.replace(/^T\d+\s/, '')
-                return <option key={b} value={b}>{display || b}</option>
-              })}
-            </select>
+            <div className="item-select-row">
+              <select value={baseItem} onChange={e => setBaseItem(e.target.value)} disabled={!subcategoria}>
+                <option value="">Selecionar...</option>
+                {baseItems.map(b => {
+                  const display = (nameMap[`T4_${b}`] || nameMap[`T5_${b}`] || b)?.replace(/^T\d+\s/, '')
+                  return <option key={b} value={b}>{display || b}</option>
+                })}
+              </select>
+              {baseItem && (
+                <button
+                  className="item-clear-btn"
+                  onClick={() => setBaseItem('')}
+                  title="Limpar item — voltar à visão da subcategoria"
+                >✕</button>
+              )}
+            </div>
           </div>
           <div className="rent-field">
             <label>Cidade de Origem</label>
@@ -267,7 +403,14 @@ export function RentabilidadeViagemTab({ servidor, setServidor, itensDisponiveis
               onChange={e => setQuantidade(parseInt(e.target.value) || 1)} />
           </div>
           <div className="rent-field rent-field-sm">
-            <label>Retorno (%)</label>
+            <label>
+              Retorno (%)
+              {cityCraftBonus > 0 && (
+                <span className="city-bonus-tag" title={`+${cityCraftBonus}% de bônus de crafting desta cidade para este tipo de item`}>
+                  +{cityCraftBonus}%
+                </span>
+              )}
+            </label>
             <input type="number" min="0" max="60" step="0.5" value={taxaRetorno}
               onChange={e => setTaxaRetorno(parseFloat(e.target.value) || 0)} />
           </div>
@@ -286,23 +429,39 @@ export function RentabilidadeViagemTab({ servidor, setServidor, itensDisponiveis
               onChange={e => setUsarOrdemCompra(e.target.checked)} />
             <span>Ordem de Compra</span>
           </label>
-          {baseItem && (
-            <button className="btn-refresh-rent" onClick={calcular} disabled={loading}>
-              {loading ? '...' : '↻'} Atualizar
+          {(baseItem || subcategoria) && (
+            <button
+              className="btn-refresh-rent"
+              onClick={() => { if (baseItem) calcular(); else calcularOportunidadesViagem() }}
+              disabled={loading || loadingOport}
+            >
+              {(loading || loadingOport) ? '...' : '↻'} Atualizar
             </button>
           )}
         </div>
       </div>
 
       {/* Conteúdo */}
-      {!baseItem ? (
+      {!baseItem && !subcategoria ? (
         <div className="rent-empty">
-          <p>Selecione um item para ver o rendimento de viagem por cidade.</p>
+          <p>Selecione uma categoria e subcategoria para ver as oportunidades de viagem.</p>
           <p className="hint">
             Escolha a <strong>Cidade de Origem</strong> onde você craftará o item.
-            A tabela mostrará o lucro de vender em cada outra cidade.
+            Selecionar um item específico exibe a tabela completa por cidade.
           </p>
         </div>
+      ) : !baseItem ? (
+        loadingOport ? (
+          <div className="loading"><div className="spinner" /><p>Calculando oportunidades...</p></div>
+        ) : (
+          <MelhorOportunidade
+            tabelaViagem={[]}
+            quantidade={quantidade}
+            volumeData={volumeDataOport}
+            oportunidades={oportunidadesViagem}
+            subLabel={subLabel(subcategoria)}
+          />
+        )
       ) : loading ? (
         <div className="loading"><div className="spinner" /><p>Buscando preços...</p></div>
       ) : tabelaViagem.length === 0 ? (
@@ -361,7 +520,7 @@ export function RentabilidadeViagemTab({ servidor, setServidor, itensDisponiveis
           {/* Ingredientes por tier (custo na cidade de origem) */}
           <IngredientesViagem rows={ingredientRows} nameMap={nameMap} cidade={CITY_DISPLAY[cidadeOrigem.replace(/\s/g, '')] || cidadeOrigem} />
 
-          {/* Melhor oportunidade */}
+          {/* Melhor oportunidade — item específico */}
           <MelhorOportunidade tabelaViagem={tabelaViagem} quantidade={quantidade} volumeData={volumeData} />
         </div>
       )}
@@ -434,20 +593,29 @@ function IngredientesViagem({ rows, nameMap, cidade }) {
   )
 }
 
-function MelhorOportunidade({ tabelaViagem, quantidade, volumeData = {} }) {
-  const melhores = []
-  for (const { cidade, cityKey, tiers } of tabelaViagem) {
-    for (const t of tiers) {
-      if (t.temDado && t.margem !== null && t.margem >= 5 && !t.semPreco) {
-        melhores.push({ cidade, cityKey, ...t })
+function MelhorOportunidade({ tabelaViagem, quantidade, volumeData = {}, oportunidades: extOps, subLabel }) {
+  let melhores
+  const isSubcat = !!extOps
+
+  if (isSubcat) {
+    melhores = extOps
+  } else {
+    melhores = []
+    for (const { cidade, cityKey, tiers } of (tabelaViagem || [])) {
+      for (const t of tiers) {
+        if (t.temDado && t.margem !== null && t.margem >= 5 && !t.semPreco) {
+          melhores.push({ cidade, cityKey, ...t })
+        }
       }
     }
+    melhores.sort((a, b) => b.margem - a.margem)
   }
-  melhores.sort((a, b) => b.margem - a.margem)
 
   if (!melhores.length) return (
     <div className="oport-empty" style={{ marginTop: '1rem' }}>
-      Nenhuma oportunidade de viagem com margem ≥ 5% encontrada.
+      {isSubcat
+        ? `Nenhuma oportunidade de viagem com margem ≥ 5% para ${subLabel || 'esta subcategoria'}.`
+        : 'Nenhuma oportunidade de viagem com margem ≥ 5% encontrada.'}
     </div>
   )
 
@@ -455,12 +623,17 @@ function MelhorOportunidade({ tabelaViagem, quantidade, volumeData = {} }) {
     <div className="oportunidades-section" style={{ marginTop: '1.5rem' }}>
       <div className="oport-header">
         <h4>Melhores Oportunidades de Viagem</h4>
-        <span className="oport-sub">Combinações cidade destino × tier com margem ≥ 5%</span>
+        <span className="oport-sub">
+          {isSubcat
+            ? <>Todos os itens de <strong>{subLabel}</strong> com margem ≥ 5%</>
+            : 'Combinações cidade destino × tier com margem ≥ 5%'}
+        </span>
       </div>
       <div className="oport-table-wrap">
         <table className="oport-table">
           <thead>
             <tr>
+              {isSubcat && <th>Item</th>}
               <th>Cidade Destino</th>
               <th>Tier</th>
               <th>Preço Venda</th>
@@ -472,8 +645,9 @@ function MelhorOportunidade({ tabelaViagem, quantidade, volumeData = {} }) {
             </tr>
           </thead>
           <tbody>
-            {melhores.slice(0, 15).map((op, i) => (
-              <tr key={`${op.cityKey}-${op.tierId}`} className={i === 0 ? 'oport-top' : ''}>
+            {melhores.slice(0, 20).map((op, i) => (
+              <tr key={`${op.cityKey}-${op.tierId}-${i}`} className={i === 0 ? 'oport-top' : ''}>
+                {isSubcat && <td className="oport-nome">{op.nomeItem}</td>}
                 <td className="oport-city">{op.cidade}</td>
                 <td className="tier-cell">T{op.tier}.0</td>
                 <td className="oport-preco">{formatSilver(op.precoVenda)}</td>
