@@ -3077,6 +3077,16 @@ a:hover {
   letter-spacing: 0.05em;
 }
 
+.rent-field input[type="number"]::-webkit-outer-spin-button,
+.rent-field input[type="number"]::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.rent-field input[type="number"] {
+  -moz-appearance: textfield;
+}
+
 .rent-field select,
 .rent-field input {
   padding: 0.5rem 0.75rem;

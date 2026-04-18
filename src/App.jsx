@@ -216,7 +216,7 @@ function App() {
                 <p>Carregando lista de itens...</p>
               </div>
             ) : (
-              <RentabilidadeTab servidor={servidor} itensDisponiveis={todosItens} />
+              <RentabilidadeTab servidor={servidor} setServidor={setServidor} itensDisponiveis={todosItens} />
             )}
           </div>
         )}

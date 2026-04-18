@@ -84,7 +84,7 @@ function useRecipeGroups() {
 }
 
 // ─── Componente principal ─────────────────────────────────────────────────────
-export function RentabilidadeTab({ servidor, itensDisponiveis }) {
+export function RentabilidadeTab({ servidor, setServidor, itensDisponiveis }) {
   const groups = useRecipeGroups()
 
   // Seletores
@@ -213,13 +213,14 @@ export function RentabilidadeTab({ servidor, itensDisponiveis }) {
     } catch { /* continua com WS */ }
 
     // Monta mapa de preços por cidade: { city: { itemId: { sellMin, buyMax } } }
-    // Usa min/max entre qualidades para capturar recursos (q=0) e itens craftados (q=1)
+    // Normaliza nome da cidade removendo espaços (API retorna "Fort Sterling", nós usamos "FortSterling")
     const pricesByCity = {}
     for (const d of apiData) {
       if (!d.city) continue
-      if (!pricesByCity[d.city]) pricesByCity[d.city] = {}
-      if (!pricesByCity[d.city][d.item_id]) pricesByCity[d.city][d.item_id] = {}
-      const entry = pricesByCity[d.city][d.item_id]
+      const cityKey = d.city.replace(/\s/g, '')
+      if (!pricesByCity[cityKey]) pricesByCity[cityKey] = {}
+      if (!pricesByCity[cityKey][d.item_id]) pricesByCity[cityKey][d.item_id] = {}
+      const entry = pricesByCity[cityKey][d.item_id]
       if (d.sell_price_min > 0)
         entry.sellMin = entry.sellMin ? Math.min(entry.sellMin, d.sell_price_min) : d.sell_price_min
       if (d.buy_price_max > 0)
@@ -227,7 +228,7 @@ export function RentabilidadeTab({ servidor, itensDisponiveis }) {
     }
 
     // Preços da cidade selecionada (com overlay do WebSocket)
-    const cidadeKey = cidade.replace(' ', '')
+    const cidadeKey = cidade.replace(/\s/g, '')
     const prices = { ...(pricesByCity[cidadeKey] || pricesByCity[cidade] || {}) }
     let anyLive = false
     for (const id of allIds) {
@@ -289,13 +290,14 @@ export function RentabilidadeTab({ servidor, itensDisponiveis }) {
       } catch {}
     }
 
-    // Monta mapa por cidade (min sellMin, max buyMax entre qualidades)
+    // Monta mapa por cidade — normaliza espaços ("Fort Sterling" → "FortSterling")
     const pricesByCity = {}
     for (const d of apiData) {
       if (!d.city) continue
-      if (!pricesByCity[d.city]) pricesByCity[d.city] = {}
-      if (!pricesByCity[d.city][d.item_id]) pricesByCity[d.city][d.item_id] = {}
-      const entry = pricesByCity[d.city][d.item_id]
+      const cityKey = d.city.replace(/\s/g, '')
+      if (!pricesByCity[cityKey]) pricesByCity[cityKey] = {}
+      if (!pricesByCity[cityKey][d.item_id]) pricesByCity[cityKey][d.item_id] = {}
+      const entry = pricesByCity[cityKey][d.item_id]
       if (d.sell_price_min > 0)
         entry.sellMin = entry.sellMin ? Math.min(entry.sellMin, d.sell_price_min) : d.sell_price_min
       if (d.buy_price_max > 0)
@@ -401,6 +403,15 @@ export function RentabilidadeTab({ servidor, itensDisponiveis }) {
             <label>Cidade</label>
             <select value={cidade} onChange={e => setCidade(e.target.value)}>
               {CIDADES_API.map(c => <option key={c} value={c}>{c.replace('Fort', 'Fort ')}</option>)}
+            </select>
+          </div>
+
+          <div className="rent-field">
+            <label>Servidor</label>
+            <select value={servidor} onChange={e => setServidor(e.target.value)}>
+              <option value="west">Americas (West)</option>
+              <option value="europe">Europe</option>
+              <option value="east">Asia (East)</option>
             </select>
           </div>
         </div>
