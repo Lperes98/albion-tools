@@ -8,13 +8,14 @@ import { PriceHistory } from './components/PriceHistory'
 import { Favoritos } from './components/Favoritos'
 import { CraftTab } from './components/craft'
 import { Calculadora } from './components/Calculadora'
+import { RentabilidadeTab } from './components/rentabilidade'
 import { useFavoritos } from './hooks/useFavoritos'
 import { useDarkMode } from './hooks/useDarkMode'
 import { carregarItens, buscarItensPorNome, consultarPrecos, QUALIDADES } from './services/albionApi'
 
 function App() {
   // Aba ativa
-  const [abaAtiva, setAbaAtiva] = useState('mercado') // 'mercado' | 'craft' | 'calculadora'
+  const [abaAtiva, setAbaAtiva] = useState('mercado') // 'mercado' | 'craft' | 'calculadora' | 'rentabilidade'
 
   // Estado principal
   const [todosItens, setTodosItens] = useState([])
@@ -109,6 +110,13 @@ function App() {
           <span className="tab-icon">🧪</span>
           Calculadora
         </button>
+        <button
+          className={`tab-button ${abaAtiva === 'rentabilidade' ? 'active' : ''}`}
+          onClick={() => setAbaAtiva('rentabilidade')}
+        >
+          <span className="tab-icon">📈</span>
+          Rentabilidade
+        </button>
       </nav>
 
       <main className="main-content">
@@ -196,6 +204,20 @@ function App() {
         {abaAtiva === 'calculadora' && (
           <div className="content content-full">
             <Calculadora />
+          </div>
+        )}
+
+        {/* Aba Rentabilidade */}
+        {abaAtiva === 'rentabilidade' && (
+          <div className="content content-full">
+            {loadingItens ? (
+              <div className="loading-screen">
+                <div className="spinner"></div>
+                <p>Carregando lista de itens...</p>
+              </div>
+            ) : (
+              <RentabilidadeTab servidor={servidor} itensDisponiveis={todosItens} />
+            )}
           </div>
         )}
       </main>
