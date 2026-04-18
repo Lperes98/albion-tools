@@ -182,6 +182,7 @@ export function RentabilidadeTab({ servidor, setServidor, itensDisponiveis }) {
       precoMin5pct,
       lucroTotal5pct,
       ingredienteInfo,
+      ingredienteSemPreco: ingredienteInfo.some(ing => ing.preco === 0),
       isLive: false,
     }
   }
@@ -525,6 +526,9 @@ export function RentabilidadeTab({ servidor, setServidor, itensDisponiveis }) {
                       <td>{formatSilver(row.itemPreco)}</td>
                       <td className={row.lucro >= 0 ? 'profit-positive' : 'profit-negative'}>
                         {formatSilver(Math.round(row.lucro))}
+                        {row.ingredienteSemPreco && (
+                          <span className="missing-price-tag" title="Um ou mais ingredientes sem preço — valor pode estar incorreto">*</span>
+                        )}
                         {row.receitaBruta > 0 && (
                           <span className={`margin-tag ${marginClass(row.margem)}`}>
                             {row.margem.toFixed(1)}%
