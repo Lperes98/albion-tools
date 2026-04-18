@@ -248,7 +248,9 @@ export function RentabilidadeTab({ servidor, setServidor, itensDisponiveis }) {
       newCityMargins[city] = {}
       for (const r of tierRecipes) {
         const row = calcRow(r, cityPrices)
-        newCityMargins[city][r.id] = row.receitaBruta > 0 ? row.margem : null
+        newCityMargins[city][r.id] = row.receitaBruta > 0
+          ? { margem: row.margem, semPreco: row.ingredienteSemPreco }
+          : null
       }
     }
     setCityMargins(newCityMargins)
@@ -661,13 +663,17 @@ function CidadesComparativo({ cityMargins, rows, usarOrdemCompra }) {
               <tr key={city}>
                 <td className="comp-city">{CITY_DISPLAY[city]}</td>
                 {rows.map(r => {
-                  const m = cityMargins[city]?.[r.id]
-                  if (m === null || m === undefined) {
+                  const entry = cityMargins[city]?.[r.id]
+                  if (entry === null || entry === undefined) {
                     return <td key={r.id} className="comp-nodata">—</td>
                   }
+                  const m = entry.margem
                   return (
                     <td key={r.id} className={m >= 5 ? 'comp-good' : m >= 0 ? 'comp-neutral' : 'comp-bad'}>
                       {m.toFixed(1)}%
+                      {entry.semPreco && (
+                        <span className="missing-price-tag" title="Um ou mais ingredientes sem preço — valor pode estar incorreto">*</span>
+                      )}
                     </td>
                   )
                 })}
