@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo, useCallback } from 'react'
 import recipesRaw from '../../data/recipes.json'
 import { consultarPrecos, buscarVolume6h, CIDADES_API } from '../../services/albionApi'
+import { connectWebSocket, disconnectWebSocket, getWsStatus, subscribeWs } from '../../services/websocketClient'
 
 const recipes = recipesRaw
 
@@ -106,6 +107,9 @@ export function RentabilidadeViagemTab({ servidor, setServidor, itensDisponiveis
   const [oportunidadesViagem, setOportunidadesViagem] = useState([])
   const [volumeDataOport, setVolumeDataOport] = useState({})
   const [loadingOport, setLoadingOport] = useState(false)
+
+  const [wsStatus, setWsStatus] = useState(getWsStatus())
+  useEffect(() => subscribeWs(setWsStatus), [])
 
   const categorias = Object.keys(groups).sort()
   const subcategorias = categoria ? Object.keys(groups[categoria] || {}).sort() : []
@@ -429,15 +433,29 @@ export function RentabilidadeViagemTab({ servidor, setServidor, itensDisponiveis
               onChange={e => setUsarOrdemCompra(e.target.checked)} />
             <span>Ordem de Compra</span>
           </label>
-          {(baseItem || subcategoria) && (
-            <button
-              className="btn-refresh-rent"
-              onClick={() => { if (baseItem) calcular(); else calcularOportunidadesViagem() }}
-              disabled={loading || loadingOport}
-            >
-              {(loading || loadingOport) ? '...' : '↻'} Atualizar
+
+          <div className={`ws-badge ws-${wsStatus}`} title={`WebSocket: ${wsStatus}`}>
+            <span className="ws-dot" />
+            {wsStatus === 'connected' ? 'Live' : wsStatus === 'connecting' ? 'Conectando...' : 'Offline'}
+          </div>
+
+          {wsStatus === 'disconnected' || wsStatus === 'error' ? (
+            <button className="btn-ws-connect" onClick={connectWebSocket}>
+              Conectar WS
+            </button>
+          ) : (
+            <button className="btn-ws-connect btn-ws-disconnect" onClick={disconnectWebSocket}>
+              Desconectar
             </button>
           )}
+
+          <button
+            className="btn-refresh-rent"
+            onClick={() => { if (baseItem) calcular(); else calcularOportunidadesViagem() }}
+            disabled={loading || loadingOport || (!baseItem && !subcategoria)}
+          >
+            {(loading || loadingOport) ? '...' : '↻'} Atualizar
+          </button>
         </div>
       </div>
 
