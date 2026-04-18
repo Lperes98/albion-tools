@@ -3284,6 +3284,23 @@ a:hover {
   cursor: help;
 }
 
+.copy-btn {
+  background: none;
+  border: none;
+  color: var(--text-secondary);
+  cursor: pointer;
+  font-size: 0.8rem;
+  padding: 0 0.3rem;
+  opacity: 0.5;
+  transition: opacity 0.15s, color 0.15s;
+  vertical-align: middle;
+}
+
+.copy-btn:hover {
+  opacity: 1;
+  color: var(--accent-color);
+}
+
 .margin-positive {
   color: #22c55e;
   font-weight: 700;

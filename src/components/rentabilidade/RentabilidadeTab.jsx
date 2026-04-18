@@ -500,6 +500,7 @@ export function RentabilidadeTab({ servidor, setServidor, itensDisponiveis }) {
           <>
             <h3 className="rent-title">
               {itemDisplayName}
+              <CopyButton text={itemDisplayName} />
               {rows[0]?.isLive && <span className="live-badge">LIVE</span>}
             </h3>
             <div className="rent-table-wrap">
@@ -582,6 +583,20 @@ export function RentabilidadeTab({ servidor, setServidor, itensDisponiveis }) {
   )
 }
 
+function CopyButton({ text }) {
+  const [copied, setCopied] = useState(false)
+  function handleCopy() {
+    navigator.clipboard.writeText(text)
+    setCopied(true)
+    setTimeout(() => setCopied(false), 1500)
+  }
+  return (
+    <button className="copy-btn" onClick={handleCopy} title="Copiar nome">
+      {copied ? '✓' : '⎘'}
+    </button>
+  )
+}
+
 function IngredientesSection({ rows, nameMap }) {
   const [expanded, setExpanded] = useState(null)
 
@@ -611,7 +626,10 @@ function IngredientesSection({ rows, nameMap }) {
                   <tbody>
                     {row.ingredienteInfo.map(ing => (
                       <tr key={ing.id}>
-                        <td>{nameMap[ing.id] || ing.id}</td>
+                        <td>
+                          {nameMap[ing.id] || ing.id}
+                          <CopyButton text={nameMap[ing.id] || ing.id} />
+                        </td>
                         <td className="center">{ing.count}</td>
                         <td className="center font-bold">{ing.countTotal}</td>
                         <td className="center">{ing.efetivo > 0 ? (ing.efetivo / (ing.preco || 1)).toFixed(1) : ing.count}</td>
