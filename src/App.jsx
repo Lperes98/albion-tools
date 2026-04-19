@@ -8,10 +8,13 @@ import { PriceHistory } from './components/PriceHistory'
 import { Favoritos } from './components/Favoritos'
 import { CraftTab } from './components/craft'
 import { Calculadora } from './components/Calculadora'
-import { RentabilidadeTab, RentabilidadeViagemTab } from './components/rentabilidade'
+import { RentabilidadeTab, RentabilidadeViagemTab, RentabilidadeBrokenMarketTab, RentabilidadeCidadeTab } from './components/rentabilidade'
+import { ComprasTab } from './components/compras'
+import { ComparativoTab } from './components/comparativo'
 import { useFavoritos } from './hooks/useFavoritos'
 import { useDarkMode } from './hooks/useDarkMode'
 import { carregarItens, buscarItensPorNome, consultarPrecos, QUALIDADES } from './services/albionApi'
+import { connectWebSocket, disconnectWebSocket, getWsStatus, subscribeWs, subscribeWsData } from './services/websocketClient'
 
 function App() {
   // Aba ativa
@@ -32,9 +35,20 @@ function App() {
   const [loadingBusca, setLoadingBusca] = useState(false)
   const [loadingPrecos, setLoadingPrecos] = useState(false)
 
+  // WebSocket
+  const [wsStatus, setWsStatus]         = useState(getWsStatus())
+  const [wsDataVersion, setWsDataVersion] = useState(0)
+
   // Hooks customizados
   const { favoritos, isFavorito, toggleFavorito, removerFavorito } = useFavoritos()
   const { darkMode, toggleDarkMode } = useDarkMode()
+
+  useEffect(() => subscribeWs(setWsStatus), [])
+  useEffect(() => subscribeWsData(v => {
+    setWsDataVersion(v)
+    // Re-busca preços da API quando chega dado novo do WS com item selecionado
+    if (selectedItem) handleSelectItem(selectedItem)
+  }), [selectedItem])
 
   // Carrega lista de itens ao iniciar
   useEffect(() => {
@@ -124,6 +138,34 @@ function App() {
           <span className="tab-icon">🚢</span>
           Rent. Viagem
         </button>
+        <button
+          className={`tab-button ${abaAtiva === 'brokenmarket' ? 'active' : ''}`}
+          onClick={() => setAbaAtiva('brokenmarket')}
+        >
+          <span className="tab-icon">💹</span>
+          Rent. Broken Market
+        </button>
+        <button
+          className={`tab-button ${abaAtiva === 'cidade' ? 'active' : ''}`}
+          onClick={() => setAbaAtiva('cidade')}
+        >
+          <span className="tab-icon">🏙️</span>
+          Rent. por Cidade
+        </button>
+        <button
+          className={`tab-button ${abaAtiva === 'compras' ? 'active' : ''}`}
+          onClick={() => setAbaAtiva('compras')}
+        >
+          <span className="tab-icon">🛒</span>
+          Compras
+        </button>
+        <button
+          className={`tab-button ${abaAtiva === 'comparativo' ? 'active' : ''}`}
+          onClick={() => setAbaAtiva('comparativo')}
+        >
+          <span className="tab-icon">🔎</span>
+          Comparativo
+        </button>
       </nav>
 
       <main className="main-content">
@@ -153,6 +195,12 @@ function App() {
                     setServidor={setServidor}
                     qualidade={qualidade}
                     setQualidade={setQualidade}
+                    wsStatus={wsStatus}
+                    onConnect={connectWebSocket}
+                    onDisconnect={disconnectWebSocket}
+                    onRefresh={() => selectedItem && handleSelectItem(selectedItem)}
+                    canRefresh={!!selectedItem}
+                    loadingPrecos={loadingPrecos}
                   />
 
                   <ItemList
@@ -175,6 +223,8 @@ function App() {
                           item={selectedItem}
                           dados={precos}
                           qualidade={QUALIDADES[qualidade]}
+                          servidor={servidor}
+                          wsDataVersion={wsDataVersion}
                         />
                         <PriceHistory
                           item={selectedItem}
@@ -207,6 +257,34 @@ function App() {
           </div>
         )}
 
+        {/* Aba Compras */}
+        {abaAtiva === 'compras' && (
+          <div className="content content-full">
+            {loadingItens ? (
+              <div className="loading-screen">
+                <div className="spinner"></div>
+                <p>Carregando lista de itens...</p>
+              </div>
+            ) : (
+              <ComprasTab itensDisponiveis={todosItens} />
+            )}
+          </div>
+        )}
+
+        {/* Aba Comparativo */}
+        {abaAtiva === 'comparativo' && (
+          <div className="content content-full">
+            {loadingItens ? (
+              <div className="loading-screen">
+                <div className="spinner"></div>
+                <p>Carregando lista de itens...</p>
+              </div>
+            ) : (
+              <ComparativoTab itensDisponiveis={todosItens} servidor={servidor} setServidor={setServidor} />
+            )}
+          </div>
+        )}
+
         {/* Aba Calculadora */}
         {abaAtiva === 'calculadora' && (
           <div className="content content-full">
@@ -224,6 +302,34 @@ function App() {
               </div>
             ) : (
               <RentabilidadeViagemTab servidor={servidor} setServidor={setServidor} itensDisponiveis={todosItens} />
+            )}
+          </div>
+        )}
+
+        {/* Aba Rentabilidade por Cidade */}
+        {abaAtiva === 'cidade' && (
+          <div className="content content-full">
+            {loadingItens ? (
+              <div className="loading-screen">
+                <div className="spinner"></div>
+                <p>Carregando lista de itens...</p>
+              </div>
+            ) : (
+              <RentabilidadeCidadeTab servidor={servidor} setServidor={setServidor} itensDisponiveis={todosItens} />
+            )}
+          </div>
+        )}
+
+        {/* Aba Broken Market */}
+        {abaAtiva === 'brokenmarket' && (
+          <div className="content content-full">
+            {loadingItens ? (
+              <div className="loading-screen">
+                <div className="spinner"></div>
+                <p>Carregando lista de itens...</p>
+              </div>
+            ) : (
+              <RentabilidadeBrokenMarketTab servidor={servidor} setServidor={setServidor} itensDisponiveis={todosItens} />
             )}
           </div>
         )}
