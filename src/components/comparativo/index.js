@@ -1,0 +1,1 @@
+export { ComparativoTab } from './ComparativoTab'

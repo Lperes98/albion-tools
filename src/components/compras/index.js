@@ -1,0 +1,1 @@
+export { ComprasTab } from './ComprasTab'
